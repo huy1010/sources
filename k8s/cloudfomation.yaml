@@ -1,0 +1,62 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Create an Amazon Cloud9 environment for Amazon EKS
+
+Parameters:
+  VPCId:
+    Type: AWS::EC2::VPC::Id # Parameter for specifying the VPC ID
+  SubnetId:
+    Type: AWS::EC2::Subnet::Id # Parameter for specifying the Subnet ID
+
+Resources:
+  EC2KeyPair:
+    Type: AWS::EC2::KeyPair
+    Properties:
+      KeyName: Cloud9KeyPair # Specify the key pair name
+
+  Cloud9Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro # Adjust the instance type as needed
+      KeyName: !Ref EC2KeyPair # Reference the key pair created above
+      ImageId: ami-0123456789abcdef0 # Specify an Amazon Linux 2 AMI ID
+      NetworkInterfaces:
+        - SubnetId: !Ref SubnetId # Reference the subnet parameter
+          AssociatePublicIpAddress: true
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash -xe
+          yum update -y
+          yum install -y python3-pip
+          pip3 install awscli
+          curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64" -o /usr/local/bin/eksctl
+          chmod +x /usr/local/bin/eksctl
+          curl --silent --location -o /usr/local/bin/kubectl "https://dl.k8s.io/release/$(curl --location -s https://dl.k8s.io/release/stable.txt)/bin/$(uname -s)/amd64/kubectl"
+          chmod +x /usr/local/bin/kubectl
+          usermod -aG docker ec2-user
+          yum install -y git
+
+  EKSClusterRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: EKSClusterRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: eks.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: EKSClusterPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - '*'
+                Resource: '*'
+
+Outputs:
+  Cloud9InstancePublicDNS:
+    Description: Public DNS of the Cloud9 instance
+    Value: !GetAtt Cloud9Instance.PublicDnsName
