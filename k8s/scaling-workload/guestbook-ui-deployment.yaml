@@ -2,5 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: guestbook-ui
+  namespace: app-dev
 spec:
   replicas: 3
