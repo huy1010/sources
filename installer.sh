@@ -8,6 +8,9 @@ kubectl_checksum='053561f7c68c5a037a69c52234e3cf1f91798854527692acd67091d594b616
 eksctl_version='0.144.0'
 eksctl_checksum='f91a12e7f72bce41a2529053d3a22351ba1fd9bb3517f9d1d1ee74dda1e43afc'
 
+helm_version='3.10.1'
+helm_checksum='c12d2cd638f2d066fec123d0bd7f010f32c643afdf288d39a4610b1f9cb32af3'
+
 kustomize_version='4.5.7'
 kustomize_checksum='701e3c4bfa14e4c520d481fdf7131f902531bfc002cb5062dcf31263a09c70c9'
 
@@ -43,6 +46,13 @@ tar zxf eksctl_Linux_amd64.tar.gz
 chmod +x eksctl
 mv ./eksctl /usr/local/bin
 rm -rf eksctl_Linux_amd64.tar.gz
+
+# helm
+download_and_verify "https://get.helm.sh/helm-v$helm_version-linux-amd64.tar.gz" "$helm_checksum" "helm.tar.gz"
+tar zxf helm.tar.gz
+chmod +x linux-amd64/helm
+mv ./linux-amd64/helm /usr/local/bin
+rm -rf linux-amd64/ helm.tar.gz
 
 # kustomize
 download_and_verify "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv${kustomize_version}/kustomize_v${kustomize_version}_linux_amd64.tar.gz" "$kustomize_checksum" "kustomize.tar.gz"
